@@ -1,73 +1,79 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-</head>
-<body>
-<div>
-    <!-- ============================================================================ -->
-    <!-- This content is only used for static prototyping purposes (natural templates)-->
-    <!-- and is therefore entirely optional, as this markup fragment will be included -->
-    <!-- from "fragments/header.html" at runtime.                                     -->
-    <!-- ============================================================================ -->
-    <div class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-                <a class="navbar-brand" href="#">Mandelbrot Visuals Using KNative and Spring Cloud Function</a>
-            </div>
-            <div class="navbar-collapse collapse">
-                <ul class="nav navbar-nav">
-                    <li class="active"><a href="#">Home</a></li>
-                </ul>
-            </div>
-        </div>
-    </div>
-</div>
-<div class="container">
-    <div class="hero-unit">
-        <h1>Mandelbrot</h1>
-        <p>
-            Welcome!
-        </p>
-    </div>
-    <div>&copy; 2018 Hubau.Cloud</div>
-    <canvas id="canvas" width="200" height="200"></canvas>
-    <script>
-        canvas = document.getElementById('canvas');
-        context = canvas.getContext('2d');
-        context.clearRect(0, 0, 100, 100);
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="description" content="">
+    <meta name="author" content="">
+    <link rel="icon" href="/favicon.ico">
 
-        var loc = window.location, new_uri;
-        if (loc.protocol === "https:") {
-            new_uri = "wss:";
-        } else {
-            new_uri = "ws:";
-        }
-        new_uri += "//" + loc.host;
-        new_uri += "/websocket/calculate";
-        var clientWebSocket = new WebSocket(new_uri);
-        clientWebSocket.onopen = function () {
-            console.log("clientWebSocket.onopen", clientWebSocket);
-            clientWebSocket.send(JSON.stringify({
-                "type": "CALCULATION",
-                "x1": -2.0,
-                "y1": -2.0,
-                "x2": 2.0,
-                "y2": 2.0,
-                "depth": 2
-            }));
-        };
-        clientWebSocket.onclose = function (error) {
-            console.log("clientWebSocket.onclose", clientWebSocket, error);
-        };
-        clientWebSocket.onerror = function (error) {
-            console.log("clientWebSocket.onerror", clientWebSocket, error);
-        };
-        clientWebSocket.onmessage = function (event) {
-            var d = JSON.parse(event.data);
-            context.fillStyle = "rgb(" + d.color + "," + d.color + "," + d.color + ")";
-            context.fillRect(d.x1, d.y1, 1, 1);
-        }
-    </script>
+    <title>Mandelbrot Visualizer using KNative and Project Riff</title>
+
+    <!-- Bootstrap core CSS -->
+    <link href="/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom styles for this template -->
+    <link href="/cover.css" rel="stylesheet">
+</head>
+
+<body class="text-center">
+
+<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
+    <header class="masthead mb-auto">
+        <div class="inner">
+            <h3 class="masthead-brand">Mandelbrot Visualizer</h3>
+            <nav class="nav nav-masthead justify-content-center">
+                <a class="nav-link active" href="/">Home</a>
+            </nav>
+        </div>
+    </header>
+
+    <main role="main" class="inner cover">
+        <h1 class="cover-heading">&quot;Patience is a virtue.&quot;</h1>
+        <canvas id="canvas" width="400" height="400"></canvas>
+    </main>
+
+    <footer class="mastfoot mt-auto">
+        <div class="inner">
+            <p>&copy; 2018 - Created with love by <a href="https://www.twitter.com/dhubau/">@dhubau</a>.</p>
+        </div>
+    </footer>
 </div>
+<script>
+    canvas = document.getElementById('canvas');
+    context = canvas.getContext('2d');
+    context.clearRect(0, 0, 400, 400);
+
+    var loc = window.location, new_uri;
+    if (loc.protocol === "https:") {
+        new_uri = "wss:";
+    } else {
+        new_uri = "ws:";
+    }
+    new_uri += "//" + loc.host;
+    new_uri += "/websocket/calculate";
+    var clientWebSocket = new WebSocket(new_uri);
+    clientWebSocket.onopen = function () {
+        console.log("clientWebSocket.onopen", clientWebSocket);
+        clientWebSocket.send(JSON.stringify({
+            "type": "CALCULATION",
+            "x1": -2.0,
+            "y1": -2.0,
+            "x2": 2.0,
+            "y2": 2.0,
+            "depth": 1
+        }));
+    };
+    clientWebSocket.onclose = function (error) {
+        console.log("clientWebSocket.onclose", clientWebSocket, error);
+    };
+    clientWebSocket.onerror = function (error) {
+        console.log("clientWebSocket.onerror", clientWebSocket, error);
+    };
+    clientWebSocket.onmessage = function (event) {
+        var d = JSON.parse(event.data);
+        context.fillStyle = "rgb(" + d.color + "," + d.color + "," + d.color + ")";
+        context.fillRect(d.x1 * 2, d.y1 * 2, 2, 2);
+    }
+</script>
 </body>
 </html>
