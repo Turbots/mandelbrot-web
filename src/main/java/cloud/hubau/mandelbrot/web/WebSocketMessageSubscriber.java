@@ -9,13 +9,9 @@ import org.springframework.web.reactive.function.BodyInserters;
 import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.UnicastProcessor;
-import reactor.util.function.Tuple2;
-import reactor.util.function.Tuples;
 
-import java.time.Duration;
-import java.time.temporal.ChronoUnit;
-
-@Slf4j class WebSocketMessageSubscriber {
+@Slf4j
+class WebSocketMessageSubscriber {
 
 	private static final int SIZE = 200;
 
@@ -38,38 +34,47 @@ import java.time.temporal.ChronoUnit;
 				SIZE, SIZE);
 
 			Flux<Integer> xFlux = Flux.range(0, SIZE);
-			Flux<Integer> yFlux = Flux.range(0, SIZE);
 
-			Flux<Tuple2<Integer, Integer>> tupleFlux = xFlux.flatMap(x -> yFlux.map(y -> Tuples.of(x, y)));
-
-			tupleFlux
-				.zipWith(Flux.interval(Duration.of(50, ChronoUnit.MILLIS)))
-				.map(t ->
-					calculate(e.getX1(), e.getY1(), e.getX2(), e.getY2(), t.getT1().getT1(),
-						t.getT1().getT2(), e.getDepth())
-						.subscribe(pixel -> eventPublisher.onNext(
-							new Event(Event.Type.RESULT, t.getT1().getT1(), t.getT1().getT2(), 0, 0, 0,
-								pixel.getColor()))))
-				.buffer(100)
+			// 			Flux<Tuple2<Integer, Integer>> tupleFlux = xFlux.flatMap(x -> yFlux.map(y -> Tuples.of(x, y)));
+			//			tupleFlux
+			//				.zipWith(Flux.interval(Duration.of(50, ChronoUnit.MILLIS)))
+			//				.map(t ->
+			//					calculateColumn(e.getX1(), e.getY1(), e.getX2(), e.getY2(), t.getT1().getT1(),
+			//						t.getT1().getT2(), e.getDepth())
+			//						.subscribe(pixel -> eventPublisher.onNext(
+			//							new Event(Event.Type.RESULT, t.getT1().getT1(), t.getT1().getT2(), 0, 0, 0,
+			//								pixel.getColor()))))
+			//				.buffer(100)
+			//				.doOnComplete(() -> log.info("Done."))
+			//				.subscribe();
+			xFlux.map(x ->
+				calculateColumn(e.getX1(), e.getY1(), e.getX2(), e.getY2(), x, e.getDepth())
+					.subscribe(p -> eventPublisher.onNext(
+						new Event(Event.Type.RESULT, p.getX(), p.getY(), 0, 0, 0, p.getColor()))))
 				.doOnComplete(() -> log.info("Done."))
 				.subscribe();
 		}
 		eventPublisher.onNext(e);
 	}
 
-	private Flux<ColoredPixel> calculate(double x1, double y1, double x2, double y2, double x, double y, int depth) {
+	private Flux<ColoredPixel> calculateColumn(double x1, double y1, double x2, double y2, int x, int depth) {
+		log.info("Calculating column [{}]", x);
+
 		double stepX = (x2 - x1) / SIZE;
 		double stepY = (y2 - y1) / SIZE;
 		double translatedX = x * stepX;
-		double translatedY = y * stepY;
 		double real = x1 + translatedX;
-		double imaginary = y1 + translatedY;
 
-		Calculation calculation = new Calculation(real, imaginary, depth * 255);
+		Flux<Calculation> calculations = Flux.range(0, SIZE).map(y -> {
+			double translatedY = y * stepY;
+			double imaginary = y1 + translatedY;
+
+			return new Calculation(real, imaginary, x, y, depth * 255);
+		});
 
 		return this.webClient
 			.post()
-			.body(BodyInserters.fromObject(calculation))
+			.body(BodyInserters.fromObject(calculations))
 			.retrieve()
 			.bodyToFlux(ColoredPixel.class);
 	}
