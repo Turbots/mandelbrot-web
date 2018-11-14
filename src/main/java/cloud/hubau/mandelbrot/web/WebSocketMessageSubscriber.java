@@ -10,10 +10,14 @@ import org.springframework.web.reactive.function.client.WebClient;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.UnicastProcessor;
 
+import java.time.Duration;
+import java.util.ArrayList;
+import java.util.List;
+
 @Slf4j
 class WebSocketMessageSubscriber {
 
-	private static final int SIZE = 200;
+	private static final int SIZE = 400;
 
 	private final UnicastProcessor<Event> eventPublisher;
 	private final WebClient webClient;
@@ -35,22 +39,11 @@ class WebSocketMessageSubscriber {
 
 			Flux<Integer> xFlux = Flux.range(0, SIZE);
 
-			// 			Flux<Tuple2<Integer, Integer>> tupleFlux = xFlux.flatMap(x -> yFlux.map(y -> Tuples.of(x, y)));
-			//			tupleFlux
-			//				.zipWith(Flux.interval(Duration.of(50, ChronoUnit.MILLIS)))
-			//				.map(t ->
-			//					calculateColumn(e.getX1(), e.getY1(), e.getX2(), e.getY2(), t.getT1().getT1(),
-			//						t.getT1().getT2(), e.getDepth())
-			//						.subscribe(pixel -> eventPublisher.onNext(
-			//							new Event(Event.Type.RESULT, t.getT1().getT1(), t.getT1().getT2(), 0, 0, 0,
-			//								pixel.getColor()))))
-			//				.buffer(100)
-			//				.doOnComplete(() -> log.info("Done."))
-			//				.subscribe();
-			xFlux.map(x ->
-				calculateColumn(e.getX1(), e.getY1(), e.getX2(), e.getY2(), x, e.getDepth())
-					.subscribe(p -> eventPublisher.onNext(
-						new Event(Event.Type.RESULT, p.getX(), p.getY(), 0, 0, 0, p.getColor()))))
+			xFlux.zipWith(Flux.interval(Duration.ofMillis(400)))
+				.map(t ->
+					calculateColumn(e.getX1(), e.getY1(), e.getX2(), e.getY2(), t.getT1(), e.getDepth())
+						.subscribe(p -> eventPublisher.onNext(
+							new Event(Event.Type.RESULT, p.getX(), p.getY(), 0, 0, 0, p.getColor()))))
 				.doOnComplete(() -> log.info("Done."))
 				.subscribe();
 		}
@@ -65,12 +58,13 @@ class WebSocketMessageSubscriber {
 		double translatedX = x * stepX;
 		double real = x1 + translatedX;
 
-		Flux<Calculation> calculations = Flux.range(0, SIZE).map(y -> {
+		List<Calculation> calculations = new ArrayList<>();
+		for (int y = 0; y < SIZE; y++) {
 			double translatedY = y * stepY;
 			double imaginary = y1 + translatedY;
 
-			return new Calculation(real, imaginary, x, y, depth * 255);
-		});
+			calculations.add(new Calculation(real, imaginary, x, y, depth * 255));
+		}
 
 		return this.webClient
 			.post()

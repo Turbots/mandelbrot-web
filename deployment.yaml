@@ -16,6 +16,6 @@ spec:
     spec:
       containers:
       - name: mandelbrot-web
-        image: gcr.io/knative-istio-riff/mandelbrot-web:0.0.6-SNAPSHOT
+        image: gcr.io/knative-istio-riff/mandelbrot-web:0.1.0-SNAPSHOT
         ports:
         - containerPort: 8080

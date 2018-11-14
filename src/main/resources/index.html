@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
     <meta name="description" content="">
     <meta name="author" content="">
-    <link rel="icon" href="/favicon.ico">
 
     <title>Mandelbrot Visualizer using KNative and Project Riff</title>
 
@@ -14,30 +13,12 @@
     <!-- Custom styles for this template -->
     <link href="/cover.css" rel="stylesheet">
 </head>
-
-<body class="text-center">
-
-<div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
-    <header class="masthead mb-auto">
-        <div class="inner">
-            <h3 class="masthead-brand">Mandelbrot Visualizer</h3>
-            <nav class="nav nav-masthead justify-content-center">
-                <a class="nav-link active" href="/">Home</a>
-            </nav>
-        </div>
-    </header>
-
-    <main role="main" class="inner cover">
-        <h1 class="cover-heading">&quot;Patience is a virtue.&quot;</h1>
-        <canvas id="canvas" width="400" height="400"></canvas>
-    </main>
-
-    <footer class="mastfoot mt-auto">
-        <div class="inner">
-            <p>&copy; 2018 - Created with love by <a href="https://www.twitter.com/dhubau/">@dhubau</a>.</p>
-        </div>
-    </footer>
+<body>
+<canvas id="canvas" width="400" height="400"></canvas>
+<div class="box">
+    <p class="logo">Thanks for watching!</p>
 </div>
+</body>
 <script>
     canvas = document.getElementById('canvas');
     context = canvas.getContext('2d');
@@ -53,7 +34,6 @@
     new_uri += "/websocket/calculate";
     var clientWebSocket = new WebSocket(new_uri);
     clientWebSocket.onopen = function () {
-        console.log("clientWebSocket.onopen", clientWebSocket);
         clientWebSocket.send(JSON.stringify({
             "type": "CALCULATION",
             "x1": -2.0,
@@ -72,7 +52,7 @@
     clientWebSocket.onmessage = function (event) {
         var d = JSON.parse(event.data);
         context.fillStyle = "rgb(" + d.color + "," + d.color + "," + d.color + ")";
-        context.fillRect(d.x1 * 2, d.y1 * 2, 2, 2);
+        context.fillRect(d.x1, d.y1, 1, 1);
     }
 </script>
 </body>
