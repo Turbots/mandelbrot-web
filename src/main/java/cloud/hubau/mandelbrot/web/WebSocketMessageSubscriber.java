@@ -1,7 +1,8 @@
 package cloud.hubau.mandelbrot.web;
 
 import io.netty.channel.ChannelOption;
-import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.client.reactive.ReactorClientHttpConnector;
@@ -14,7 +15,6 @@ import java.time.Duration;
 import java.util.ArrayList;
 import java.util.List;
 
-@Slf4j
 class WebSocketMessageSubscriber {
 
 	private static final int SIZE = 400;
@@ -22,13 +22,14 @@ class WebSocketMessageSubscriber {
 	private final UnicastProcessor<Event> eventPublisher;
 	private final WebClient webClient;
 
+	private static final Logger log = LoggerFactory.getLogger(WebSocketMessageSubscriber.class);
+
 	WebSocketMessageSubscriber(UnicastProcessor<Event> eventPublisher) {
 		this.eventPublisher = eventPublisher;
-		webClient = WebClient.builder().baseUrl("http://35.241.137.76")
+		webClient = WebClient.builder().baseUrl("http://mandelbrot.default.svc.cluster.local")
 			.clientConnector(
 				new ReactorClientHttpConnector(o -> o.option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 600000)))
 			.defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
-			.defaultHeader(HttpHeaders.HOST, "mandelbrot.default.example.com")
 			.build();
 	}
 
@@ -39,7 +40,7 @@ class WebSocketMessageSubscriber {
 
 			Flux<Integer> xFlux = Flux.range(0, SIZE);
 
-			xFlux.zipWith(Flux.interval(Duration.ofMillis(400)))
+			xFlux.zipWith(Flux.interval(Duration.ofMillis(100)))
 				.map(t ->
 					calculateColumn(e.getX1(), e.getY1(), e.getX2(), e.getY2(), t.getT1(), e.getDepth())
 						.subscribe(p -> eventPublisher.onNext(

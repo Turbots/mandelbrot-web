@@ -15,8 +15,9 @@
 </head>
 <body>
 <canvas id="canvas" width="400" height="400"></canvas>
+<p class="top-left">Patience is a virtue!</p>
 <div class="box">
-    <p class="logo">Thanks for watching!</p>
+    <p class="bottom-right">Thank you!</p>
 </div>
 </body>
 <script>
@@ -36,9 +37,9 @@
     clientWebSocket.onopen = function () {
         clientWebSocket.send(JSON.stringify({
             "type": "CALCULATION",
-            "x1": -2.0,
+            "x1": -2.5,
             "y1": -2.0,
-            "x2": 2.0,
+            "x2": 1.5,
             "y2": 2.0,
             "depth": 1
         }));
@@ -51,8 +52,21 @@
     };
     clientWebSocket.onmessage = function (event) {
         var d = JSON.parse(event.data);
-        context.fillStyle = "rgb(" + d.color + "," + d.color + "," + d.color + ")";
-        context.fillRect(d.x1, d.y1, 1, 1);
+
+        //var hue = d.color;
+        //var saturation = 255;
+        //var value = d.color < 255 ? 0 : 255;
+
+        if(d.color == 0) {
+            context.fillStyle = '#000';
+            context.fillRect(d.x1, d.y1, 1, 1); // Draw a black pixel
+        } else {
+            context.fillStyle = 'hsl(0, 100%, ' + d.color + '%)';
+            context.fillRect(d.x1, d.y1, 1, 1); // Draw a colorful pixel
+        }
+
+        //context.fillStyle = "hsl(" + hue + "," + saturation + "," + value + ")";
+        //context.fillRect(d.x1, d.y1, 1, 1);
     }
 </script>
 </body>

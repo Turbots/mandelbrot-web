@@ -29,9 +29,16 @@ body {
     position: relative;
 }
 
-.logo {
+.bottom-right {
     width: 200px;
     position: absolute;
     bottom: 10px;
     right: 10px;
+}
+
+.top-left {
+    width: 200px;
+    position: absolute;
+    top: 10px;
+    left: 10px;
 }

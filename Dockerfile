@@ -1,6 +1,9 @@
 FROM openjdk:8-jre-alpine
-LABEL maintainer="dhubau@gmail.com"
 VOLUME /tmp
-EXPOSE 8080
-ADD target/mandelbrot-web-0.1.0-SNAPSHOT.jar mandelbrot-web.jar
-ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-jar","/mandelbrot-web.jar"]
+
+ARG DEPENDENCY=target/dependency
+
+COPY ${DEPENDENCY}/BOOT-INF/lib /app/lib
+COPY ${DEPENDENCY}/META-INF /app/META-INF
+COPY ${DEPENDENCY}/BOOT-INF/classes /app
+ENTRYPOINT ["java","-Djava.security.egd=file:/dev/./urandom","-cp","app:app/lib/*","cloud.hubau.mandelbrot.web.WebApplication"]
